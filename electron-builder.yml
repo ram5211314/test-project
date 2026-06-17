@@ -1,0 +1,26 @@
+appId: com.sharpviewer.app
+productName: SHARP Viewer
+directories:
+  output: release
+files:
+  - dist/**/*
+  - package.json
+extraResources:
+  - from: models/
+    to: models/
+    filter:
+      - "*.onnx"
+      - "*.onnx.data"
+mac:
+  target: [dmg, zip]
+  category: public.app-category.graphics-design
+win:
+  target: [nsis, portable]
+linux:
+  target: [AppImage, deb]
+  category: Graphics
+asar: true
+asarUnpack:
+  - "node_modules/onnxruntime-node/**/*"
+  - "node_modules/sharp/**/*"
+  - "models/**/*"

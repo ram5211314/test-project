@@ -1,0 +1,16 @@
+// ============================================================
+// shared/ipc-channels.ts — IPC channel 名称常量
+// ============================================================
+
+export const IPC_INFERENCE_START = 'inference:start';
+export const IPC_INFERENCE_CANCEL = 'inference:cancel';
+export const IPC_INFERENCE_STATUS = 'inference:status';
+
+export const IPC_RUNTIME_GET_CAPABILITIES = 'runtime:get-capabilities';
+export const IPC_MODEL_GET_STATUS = 'model:get-status';
+
+export const IPC_FILE_OPEN_IMAGE = 'file:open-image';
+export const IPC_FILE_REGISTER_LOCAL = 'file:register-local';
+
+export const IPC_APP_GET_VERSION = 'app:get-version';
+export const IPC_APP_QUIT = 'app:quit';
