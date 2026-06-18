@@ -22,6 +22,7 @@ export class StatusUI {
     if (existing) return existing;
     const el = document.createElement('div');
     el.id = 'status-bar';
+    el.setAttribute('aria-hidden', 'true');
     el.innerHTML = `
       <span id="status-model" class="status-item">模型: 未就绪</span>
       <span id="status-backend" class="status-item">后端: --</span>
@@ -45,5 +46,10 @@ export class StatusUI {
 
   setBackend(backend: string): void {
     this.backendInfo.textContent = `后端: ${backend}`;
+  }
+
+  setVisible(visible: boolean): void {
+    this.container.classList.toggle('is-visible', visible);
+    this.container.setAttribute('aria-hidden', visible ? 'false' : 'true');
   }
 }

@@ -188,3 +188,5 @@ export interface PlatformInfo {
   availableBackend: BackendProvider;
   executionProviders: BackendProvider[];
 }
+
+export type WindowMode = 'compact' | 'viewer';

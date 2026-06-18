@@ -4,13 +4,15 @@ import { ipcMain, app } from 'electron';
 import {
   IPC_APP_GET_VERSION,
   IPC_APP_QUIT,
+  IPC_APP_SET_WINDOW_MODE,
   IPC_MODEL_GET_STATUS,
   IPC_RUNTIME_GET_CAPABILITIES,
 } from '../../shared/ipc-channels';
 import { ONNX_DATA_FILENAME, ONNX_MODEL_FILENAME } from '../../shared/constants';
-import type { ModelStatus } from '../../shared/types';
+import type { ModelStatus, WindowMode } from '../../shared/types';
 import { BackendManager } from '../backend/manager';
 import { getModelCacheDir } from '../utils/paths';
+import { setMainWindowMode } from '../window';
 
 function fileSize(filePath: string): number {
   try {
@@ -42,4 +44,7 @@ export function registerAppHandlers(backend: BackendManager): void {
   ipcMain.handle(IPC_MODEL_GET_STATUS, async () => getModelStatus());
   ipcMain.handle(IPC_APP_GET_VERSION, async () => app.getVersion());
   ipcMain.handle(IPC_APP_QUIT, async () => app.quit());
+  ipcMain.handle(IPC_APP_SET_WINDOW_MODE, async (_event, mode: WindowMode) => {
+    setMainWindowMode(mode);
+  });
 }

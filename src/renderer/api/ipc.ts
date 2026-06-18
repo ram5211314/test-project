@@ -6,6 +6,7 @@ import type {
   ModelStatus,
   OpenDialogReturnValue,
   RuntimeCapabilities,
+  WindowMode,
 } from '../../shared/types';
 
 export const inferenceAPI = {
@@ -41,4 +42,6 @@ export const fileAPI = {
 export const appAPI = {
   getVersion: (): Promise<string> =>
     window.electronAPI.getAppVersion(),
+  setWindowMode: (mode: WindowMode): Promise<void> =>
+    window.electronAPI.setWindowMode(mode),
 };

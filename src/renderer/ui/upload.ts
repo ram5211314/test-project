@@ -35,10 +35,15 @@ export class UploadUI {
     const el = document.createElement('div');
     el.className = 'upload-dropzone';
     el.innerHTML = `
-      <div class="upload-icon">📁</div>
-      <div class="upload-text">拖拽图片到此处</div>
-      <div class="upload-subtext">支持 JPG / PNG / HEIC 格式</div>
-      <button class="upload-btn">选择图片</button>
+      <div class="upload-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+          <path fill="none" d="M0 0h24v24H0z" />
+          <path fill="currentColor" d="M11 16V7.85l-2.6 2.6L7 9l5-5l5 5l-1.4 1.45l-2.6-2.6V16zm-5 4q-.825 0-1.412-.587T4 18v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 20z" />
+        </svg>
+      </div>
+      <div class="upload-text">上传图片</div>
+      <div class="upload-subtext">点击选择，或将图片拖入窗口</div>
+      <div class="upload-meta">支持 JPG、PNG、HEIC、WEBP</div>
     `;
     return el;
   }
@@ -163,7 +168,6 @@ export class UploadUI {
 
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
-    this.dropZone.style.opacity = enabled ? '1' : '0.5';
-    this.dropZone.style.pointerEvents = enabled ? 'auto' : 'none';
+    this.dropZone.classList.toggle('is-disabled', !enabled);
   }
 }

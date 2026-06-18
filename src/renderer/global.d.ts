@@ -6,6 +6,7 @@ import type {
   ModelStatus,
   OpenDialogReturnValue,
   RuntimeCapabilities,
+  WindowMode,
 } from '../shared/types';
 
 declare global {
@@ -21,6 +22,7 @@ declare global {
       getPathForFile: (file: File) => string;
       copyImageToClipboard: (imageBytes: Uint8Array | ArrayBuffer) => void;
       getAppVersion: () => Promise<string>;
+      setWindowMode: (mode: WindowMode) => Promise<void>;
     };
   }
 }

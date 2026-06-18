@@ -13,7 +13,7 @@ import { SettingsUI } from './ui/settings';
 import { appStore } from './state/store';
 import { appEvents } from './state/events';
 import { Events } from './state/types';
-import { inferenceAPI, modelAPI, runtimeAPI } from './api/ipc';
+import { appAPI, inferenceAPI, modelAPI, runtimeAPI } from './api/ipc';
 import { sendToExternalAPI } from './api/external';
 import type { AppError } from '../shared/types';
 import type { ExternalApiConfig } from '../shared/types';
@@ -26,6 +26,15 @@ let externalApiConfig: ExternalApiConfig = {
   fieldName: 'image',
 };
 let pendingReferenceImageUrl: string | null = null;
+
+function syncAppPhaseClass(): void {
+  const app = document.getElementById('app');
+  if (!app) return;
+
+  const phase = appStore.getState().phase;
+  app.dataset.phase = phase;
+  app.classList.toggle('app-has-content', phase === 'ready' || phase === 'processing');
+}
 
 async function copyBlobToClipboard(blob: Blob): Promise<void> {
   const copyImageToClipboard = window.electronAPI?.copyImageToClipboard;
@@ -50,6 +59,11 @@ async function copyBlobToClipboard(blob: Blob): Promise<void> {
 document.addEventListener('DOMContentLoaded', async () => {
   // 初始化状态管理
   appStore.initialize();
+  syncAppPhaseClass();
+  appStore.subscribe(() => {
+    syncAppPhaseClass();
+  });
+  void appAPI.setWindowMode('compact');
 
   // 初始化 UI 组件
   const uploadUI = new UploadUI();
@@ -83,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (status.stage === 'failed' || status.stage === 'cancelled') {
       progressUI.hide();
       uploadUI.setEnabled(true);
+      statusUI.setVisible(false);
       return;
     }
     if (status.stage !== 'ready') {
@@ -99,6 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   appEvents.on(Events.IMAGE_SELECTED, async (imagePath: string) => {
+    void appAPI.setWindowMode('viewer');
     appStore.dispatch({ type: 'SET_INPUT_IMAGE', path: imagePath });
     appStore.dispatch({ type: 'SET_PHASE', phase: 'inferring' });
 
@@ -134,6 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await viewerUI.setReferenceImage(pendingReferenceImageUrl ?? result.referenceImageUrl ?? imagePath);
       appStore.dispatch({ type: 'SET_PHASE', phase: 'ready' });
       toolbarUI.setEnabled(true);
+      statusUI.setVisible(true);
       progressUI.hide();
       statusUI.setInferenceTime(result.durationMs);
       statusUI.setBackend(result.backend.toUpperCase());
@@ -159,6 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   appEvents.on(Events.INFERENCE_COMPLETE, (result) => {
     progressUI.hide();
     toolbarUI.setEnabled(true);
+    statusUI.setVisible(true);
     statusUI.setInferenceTime(result.durationMs);
   });
 
@@ -166,6 +184,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   appEvents.on(Events.INFERENCE_ERROR, (err: AppError) => {
     progressUI.hide();
     uploadUI.setEnabled(true);
+    toolbarUI.setEnabled(false);
+    statusUI.setVisible(false);
+    appStore.dispatch({ type: 'SET_PHASE', phase: 'idle' });
+    void appAPI.setWindowMode('compact');
     appStore.dispatch({ type: 'SET_ERROR', error: err });
     appEvents.emit(Events.APP_ERROR, err);
   });
@@ -236,7 +258,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   appEvents.on(Events.UPLOAD_REQUESTED, () => {
+    appStore.dispatch({ type: 'SET_PHASE', phase: 'idle' });
     resultUI.clear();
+    uploadUI.show();
+    toolbarUI.setEnabled(false);
+    statusUI.setVisible(false);
+    void appAPI.setWindowMode('compact');
   });
 
   settingsUI.onApply((settings) => {

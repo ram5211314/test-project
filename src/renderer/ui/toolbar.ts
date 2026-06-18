@@ -21,6 +21,7 @@ export class ToolbarUI {
     if (existing) return existing;
     const el = document.createElement('div');
     el.id = 'toolbar';
+    el.setAttribute('aria-hidden', 'true');
     el.innerHTML = `
       <button id="btn-capture" class="toolbar-btn" title="截图">
         📷 截图
@@ -82,6 +83,7 @@ export class ToolbarUI {
 
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
-    this.container.style.opacity = enabled ? '1' : '0.5';
+    this.container.classList.toggle('is-visible', enabled);
+    this.container.setAttribute('aria-hidden', enabled ? 'false' : 'true');
   }
 }

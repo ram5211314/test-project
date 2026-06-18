@@ -7,8 +7,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
-  padding: 40px;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  padding: 24px 32px 32px;
+  position: relative;
+  z-index: 2;
 }
 
 .upload-dropzone {
@@ -16,79 +20,117 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 480px;
-  padding: 60px 40px;
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-secondary);
+  width: min(100%, 280px);
+  min-height: 188px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: opacity 180ms ease, transform 180ms ease;
+  -webkit-app-region: no-drag;
 }
 
 .upload-dropzone:hover,
 .upload-dropzone.drag-over {
-  border-color: var(--accent);
-  background: var(--bg-panel);
+  opacity: 0.78;
+  transform: translateY(-1px);
+}
+
+.upload-dropzone.is-disabled {
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .upload-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+.upload-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .upload-text {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 600;
-  margin-bottom: 8px;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+  text-wrap: balance;
 }
 
 .upload-subtext {
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.45;
   color: var(--text-secondary);
-  margin-bottom: 24px;
+  text-align: center;
+  max-width: 16em;
 }
 
-.upload-btn {
-  padding: 10px 28px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
+.upload-meta {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #9ca3af;
+  text-align: center;
 }
 
-.upload-btn:hover {
-  background: var(--accent-hover);
+#app[data-phase='idle'] #toolbar,
+#app[data-phase='idle'] #status-bar,
+#app[data-phase='idle'] #viewer-container,
+#app[data-phase='idle'] #result-panel,
+#app[data-phase='idle'] #progress-container,
+#app[data-phase='idle'] #settings-panel {
+  display: none !important;
 }
 
 /* ---- Toolbar ---- */
 #toolbar {
-  display: flex;
+  display: none;
   align-items: center;
-  padding: 8px 16px;
-  background: var(--bg-panel);
-  border-bottom: 1px solid var(--border);
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  z-index: 30;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   gap: 8px;
-  opacity: 0.5;
-  transition: opacity 0.2s;
+  box-shadow: var(--shadow-soft);
+  -webkit-app-region: drag;
+}
+
+#toolbar.is-visible {
+  display: flex;
 }
 
 .toolbar-btn {
-  padding: 6px 14px;
-  background: var(--bg-secondary);
+  padding: 8px 14px;
+  background: #ffffff;
   color: var(--text-primary);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   font-size: 13px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  -webkit-app-region: no-drag;
 }
 
 .toolbar-btn:hover {
-  background: var(--accent);
+  background: #f9fafb;
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
 }
 
 .toolbar-spacer {
@@ -103,7 +145,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 15, 26, 0.9);
+  background: rgba(255, 255, 255, 0.8);
   align-items: center;
   justify-content: center;
   z-index: 100;
@@ -112,6 +154,11 @@
 .progress-content {
   text-align: center;
   width: 320px;
+  padding: 28px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  box-shadow: var(--shadow-soft);
 }
 
 .progress-bar-track {
@@ -151,11 +198,12 @@
   transform: translateX(-50%);
   width: 90%;
   max-width: 800px;
-  background: var(--bg-panel);
+  background: #ffffff;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 16px;
   z-index: 50;
   overflow: hidden;
+  box-shadow: var(--shadow-soft);
 }
 
 .result-header {
@@ -163,7 +211,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: var(--bg-secondary);
+  background: #f9fafb;
   border-bottom: 1px solid var(--border);
 }
 
@@ -211,14 +259,26 @@
 
 /* ---- Status Bar ---- */
 #status-bar {
-  display: flex;
+  display: none;
   align-items: center;
-  padding: 4px 16px;
-  background: var(--bg-panel);
-  border-top: 1px solid var(--border);
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   gap: 24px;
   font-size: 12px;
   color: var(--text-secondary);
+  box-shadow: var(--shadow-soft);
+  -webkit-app-region: drag;
+}
+
+#status-bar.is-visible {
+  display: flex;
 }
 
 .status-item {
@@ -238,7 +298,7 @@
 .settings-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(3, 6, 18, 0.56);
+  background: rgba(17, 24, 39, 0.16);
 }
 
 .settings-drawer {
@@ -247,7 +307,7 @@
   right: 0;
   width: min(420px, 100%);
   height: 100%;
-  background: #101827;
+  background: #ffffff;
   border-left: 1px solid var(--border);
   box-shadow: -24px 0 60px rgba(0, 0, 0, 0.35);
   display: flex;
@@ -280,7 +340,7 @@
   height: 32px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--bg-secondary);
+  background: #ffffff;
   color: var(--text-primary);
   font-size: 20px;
   cursor: pointer;
@@ -322,7 +382,7 @@
 .setting-row input,
 .setting-row select {
   min-width: 0;
-  background: var(--bg-secondary);
+  background: #ffffff;
   color: var(--text-primary);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -382,5 +442,5 @@
 }
 
 .settings-secondary {
-  background: var(--bg-secondary);
+  background: #ffffff;
 }

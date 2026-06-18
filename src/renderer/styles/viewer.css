@@ -6,8 +6,11 @@
   display: none;
   flex: 1;
   position: relative;
-  background: var(--bg-primary);
+  min-height: 0;
+  background: transparent;
   overflow: hidden;
+  border-radius: 0;
+  margin: 0;
 }
 
 #viewer-container.active {
@@ -47,7 +50,7 @@
   margin-top: 2px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: rgba(16, 24, 39, 0.86);
+  background: rgba(12, 18, 24, 0.74);
   color: var(--text-primary);
   padding: 8px 12px;
   cursor: pointer;
@@ -63,9 +66,10 @@
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgba(16, 24, 39, 0.86);
+  background: rgba(12, 18, 24, 0.82);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .reference-overlay-panel.open .reference-overlay-controls {
@@ -113,7 +117,7 @@
 .reference-overlay-controls input[type="number"] {
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-primary);
   padding: 5px 7px;
   text-align: right;
@@ -128,7 +132,7 @@
   min-width: 0;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-primary);
   padding: 6px 8px;
 }

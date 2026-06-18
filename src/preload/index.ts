@@ -1,6 +1,7 @@
 import { clipboard, contextBridge, ipcRenderer, nativeImage, webUtils } from 'electron';
 import {
   IPC_APP_GET_VERSION,
+  IPC_APP_SET_WINDOW_MODE,
   IPC_FILE_OPEN_IMAGE,
   IPC_FILE_REGISTER_LOCAL,
   IPC_INFERENCE_CANCEL,
@@ -9,7 +10,7 @@ import {
   IPC_MODEL_GET_STATUS,
   IPC_RUNTIME_GET_CAPABILITIES,
 } from '../shared/ipc-channels';
-import type { InferenceStartRequest, InferenceStatus } from '../shared/types';
+import type { InferenceStartRequest, InferenceStatus, WindowMode } from '../shared/types';
 
 const api = {
   startInference: (request: InferenceStartRequest) =>
@@ -42,6 +43,7 @@ const api = {
   },
 
   getAppVersion: () => ipcRenderer.invoke(IPC_APP_GET_VERSION),
+  setWindowMode: (mode: WindowMode) => ipcRenderer.invoke(IPC_APP_SET_WINDOW_MODE, mode),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', api);

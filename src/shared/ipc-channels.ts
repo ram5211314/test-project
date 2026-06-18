@@ -14,3 +14,4 @@ export const IPC_FILE_REGISTER_LOCAL = 'file:register-local';
 
 export const IPC_APP_GET_VERSION = 'app:get-version';
 export const IPC_APP_QUIT = 'app:quit';
+export const IPC_APP_SET_WINDOW_MODE = 'app:set-window-mode';
