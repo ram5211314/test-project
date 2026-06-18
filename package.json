@@ -1,7 +1,7 @@
 {
   "name": "sharp-viewer",
   "version": "1.0.0",
-  "description": "照片重构 - 单图转3D高斯泼溅桌面应用",
+  "description": "照片重构（Photo Reframing）- 单图转3D高斯泼溅桌面应用",
   "main": "dist/main/index.js",
   "scripts": {
     "dev": "npm run build:backend && concurrently \"npm run dev:backend\" \"electron-vite dev\"",
@@ -9,8 +9,10 @@
     "build:backend": "vite build --config backend.vite.config.ts",
     "build": "electron-vite build && npm run build:backend",
     "start": "electron-vite preview",
-    "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder",
+    "pack": "node scripts/build-package.cjs --dir",
+    "pack:full": "node scripts/build-package.cjs --dir --include-models",
+    "dist": "node scripts/build-package.cjs",
+    "dist:full": "node scripts/build-package.cjs --include-models",
     "smoke:backend": "npm run build && node dist/backend/worker.js --smoke output/test-image.jpg",
     "smoke:ipc": "npm run build:backend && electron scripts/utility-ipc-smoke.cjs",
     "smoke:viewer": "electron scripts/viewer-smoke.cjs"
