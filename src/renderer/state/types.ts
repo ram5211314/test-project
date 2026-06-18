@@ -14,6 +14,7 @@ export const Events = {
   CAPTURE_COMPLETE: 'capture:complete',
   UPLOAD_REQUESTED: 'upload:requested',
   RETURN_TO_UPLOAD: 'upload:return',
+  RETURN_TO_VIEWER: 'viewer:return',
   RECONSTRUCTION_START: 'reconstruction:start',
   RECONSTRUCTION_COMPARE_START: 'reconstruction:compare-start',
   RECONSTRUCTION_COMPARE_END: 'reconstruction:compare-end',

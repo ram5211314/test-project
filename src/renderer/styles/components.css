@@ -662,6 +662,15 @@
   transform: translateY(0) scale(1);
 }
 
+/* Portal 状态：菜单被移到 body 下以脱离 drawer 的层叠上下文，让 backdrop-filter 生效 */
+.custom-select-menu.is-portal-open {
+  position: fixed;
+  z-index: 1000;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
 .custom-select-option {
   min-height: 34px;
   display: flex;
@@ -757,15 +766,17 @@
   opacity: 0;
   pointer-events: none;
   background: var(--viewer-background);
-  transition: opacity 420ms ease;
+  transition: none;
 }
 
 .fx-layer.is-busy .busy-preview {
   opacity: 1;
+  transition: none;
 }
 
 .fx-layer.is-fading .busy-preview {
   opacity: 0;
+  transition: opacity 460ms ease;
 }
 
 .busy-preview {

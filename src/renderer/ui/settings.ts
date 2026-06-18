@@ -327,32 +327,70 @@ export class SettingsUI {
   private bindCustomSelect(config: SelectConfig<string>): void {
     const root = this.container.querySelector<HTMLElement>(`[data-select="${config.key}"]`);
     const toggle = this.container.querySelector<HTMLButtonElement>(`[data-select-toggle="${config.key}"]`);
+    const menu = this.container.querySelector<HTMLElement>(`[data-select-menu="${config.key}"]`);
     const nativeSelect = this.form.elements.namedItem(config.formName) as HTMLSelectElement | null;
-    if (!root || !toggle || !nativeSelect) return;
+    if (!root || !toggle || !menu || !nativeSelect) return;
+
+    // 菜单原始父节点，关闭时移回原位
+    const menuParent = menu.parentElement;
+
+    const positionMenu = (): void => {
+      if (!menu.classList.contains('is-portal-open')) return;
+      const rect = toggle.getBoundingClientRect();
+      menu.style.left = `${rect.left}px`;
+      menu.style.top = `${rect.bottom + 8}px`;
+      menu.style.width = `${rect.width}px`;
+    };
+
+    const openMenu = (): void => {
+      root.classList.add('is-open');
+      toggle.setAttribute('aria-expanded', 'true');
+      // Portal 到 body：脱离 .settings-drawer 的 transform/backdrop-filter 层叠上下文，
+      // 让菜单自身的 backdrop-filter 能采样到 drawer 后方的真实页面背景并生效
+      document.body.appendChild(menu);
+      menu.classList.add('is-portal-open');
+      // 强制下一帧再定位，确保 fixed 定位已生效
+      requestAnimationFrame(positionMenu);
+    };
+
+    const closeMenu = (): void => {
+      if (!root.classList.contains('is-open')) return;
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      menu.classList.remove('is-portal-open');
+      menu.style.left = '';
+      menu.style.top = '';
+      menu.style.width = '';
+      menuParent?.appendChild(menu);
+    };
 
     toggle.addEventListener('click', () => {
-      const open = !root.classList.contains('is-open');
-      root.classList.toggle('is-open', open);
-      toggle.setAttribute('aria-expanded', String(open));
+      if (root.classList.contains('is-open')) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
     });
 
     this.container.querySelectorAll<HTMLButtonElement>(`[data-select-option="${config.key}"]`).forEach((option) => {
       option.addEventListener('click', () => {
         const value = config.normalizeValue(option.dataset.selectOptionValue ?? config.defaultValue);
         nativeSelect.value = value;
-        root.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
+        closeMenu();
         this.syncFromForm();
         this.syncCustomSelect(config);
       });
     });
 
     document.addEventListener('pointerdown', (event) => {
-      if (!this.container.classList.contains('is-open')) return;
+      if (!root.classList.contains('is-open')) return;
       if (root.contains(event.target as Node)) return;
-      root.classList.remove('is-open');
-      toggle.setAttribute('aria-expanded', 'false');
+      if (menu.contains(event.target as Node)) return;
+      closeMenu();
     });
+
+    window.addEventListener('resize', positionMenu);
+    window.addEventListener('scroll', positionMenu, true);
   }
 
   private syncCustomSelect(config: SelectConfig<string>): void {

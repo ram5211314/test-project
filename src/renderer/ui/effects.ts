@@ -44,7 +44,25 @@ export class EffectsUI {
     this.clearOwnedPreviewUrl();
     this.container.classList.remove('is-fading');
     this.container.classList.add('is-busy');
+    // 若已通过 preparePreviewUrl 预加载，直接启动渲染循环，
+    // 跳过 stop+clear 以保留 canvas 已有内容，避免显示瞬间出现灰底。
+    if (url && this.imageFx.hasSource(url)) {
+      this.imageFx.start();
+      return;
+    }
     void this.setPreviewSource(url);
+  }
+
+  /**
+   * 预加载预览图片并启动渲染循环，但不显示 is-busy 层。
+   * 用于在切换窗口尺寸前先把图片准备好，这样切换后可直接显示有内容的预览，
+   * 避免出现灰底闪烁。调用方在切换窗口并等待一帧后调用 showPreviewUrl 即可无缝显示。
+   */
+  async preparePreviewUrl(url: string | null): Promise<void> {
+    this.cancelFadeTimer();
+    this.clearOwnedPreviewUrl();
+    this.container.classList.remove('is-busy', 'is-fading');
+    await this.setPreviewSource(url);
   }
 
   showPreviewBlob(blob: Blob): void {

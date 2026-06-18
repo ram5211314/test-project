@@ -13,6 +13,7 @@ type ToolbarMode = 'idle' | 'ready' | 'processing' | 'result';
 export class ToolbarUI {
   private container: HTMLElement;
   private bottomActions: HTMLElement;
+  private backButton: HTMLButtonElement | null = null;
   private maximizeButton: HTMLButtonElement | null = null;
   private mode: ToolbarMode = 'idle';
 
@@ -61,10 +62,16 @@ export class ToolbarUI {
   }
 
   private bindEvents(): void {
+    this.backButton = this.container.querySelector('#btn-back');
     this.maximizeButton = this.container.querySelector('#btn-maximize');
 
-    this.container.querySelector('#btn-back')?.addEventListener('click', () => {
-      if (this.mode !== 'idle') appEvents.emit(Events.RETURN_TO_UPLOAD);
+    this.backButton?.addEventListener('click', () => {
+      if (this.mode === 'idle') return;
+      if (this.mode === 'result') {
+        appEvents.emit(Events.RETURN_TO_VIEWER);
+      } else {
+        appEvents.emit(Events.RETURN_TO_UPLOAD);
+      }
     });
 
     this.container.querySelector('#btn-settings')?.addEventListener('click', () => {
@@ -158,6 +165,14 @@ export class ToolbarUI {
     this.mode = mode;
     this.container.dataset.mode = mode;
     this.bottomActions.setAttribute('aria-hidden', mode === 'idle' ? 'true' : 'false');
+    this.updateBackButton();
+  }
+
+  private updateBackButton(): void {
+    if (!this.backButton) return;
+    const label = this.mode === 'result' ? '返回模型' : '返回上传';
+    this.backButton.title = label;
+    this.backButton.setAttribute('aria-label', label);
   }
 
   private updateMaximizeButton(isMaximized: boolean): void {

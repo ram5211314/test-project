@@ -86,6 +86,14 @@ export class ImageGenerateFxRenderer {
     this.prepareSourceTextures();
   }
 
+  /**
+   * 判断指定 url 的源图是否已加载且纹理已准备就绪。
+   * 用于 EffectsUI 在显示前判断是否可跳过 stop+clear，保留 canvas 已有内容。
+   */
+  hasSource(url: string): boolean {
+    return this.sourceUrl === url && this.blurTexture !== null;
+  }
+
   start(): void {
     if (this.rafId !== null) return;
     this.startTime = performance.now();

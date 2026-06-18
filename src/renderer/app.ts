@@ -109,8 +109,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     uploadUI.setLoading(true);
     uploadUI.setEnabled(false);
     toolbarUI.setProcessing();
-    await waitForNextPaint();
+
+    // 在 compact 窗口下预加载预览图片并启动渲染循环（不可见），
+    // 这样切换到 viewer 窗口后 canvas 已有内容，可直接显示，避免灰底闪烁。
+    await effectsUI.preparePreviewUrl(pendingReferenceImageUrl);
+
     await setViewerWindowMode(imagePath);
+    // 等一帧让 fx canvas 按新窗口尺寸 resize 并重新准备纹理、渲染一帧。
+    await waitForNextPaint();
 
     appStore.dispatch({ type: 'SET_PHASE', phase: 'inferring' });
     uploadUI.hide();
@@ -252,11 +258,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     referenceImageBlob = null;
     effectsUI.clear();
     resultUI.clear();
+    viewerUI.reset();
     uploadUI.show();
     uploadUI.setLoading(false);
     uploadUI.setEnabled(true);
     toolbarUI.setIdle();
     void appAPI.setWindowMode('compact');
+  });
+
+  appEvents.on(Events.RETURN_TO_VIEWER, () => {
+    resultUI.clear();
+    toolbarUI.setEnabled(true);
+    appStore.dispatch({ type: 'SET_PHASE', phase: 'ready' });
   });
 
   appEvents.on(Events.MODEL_DOWNLOAD_PROGRESS, () => {});

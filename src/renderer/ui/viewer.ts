@@ -177,6 +177,22 @@ export class ViewerUI {
     }
   }
 
+  /**
+   * 清理查看器显示状态：隐藏容器、清除参考图叠加、卸载 3D 模型。
+   * 用于返回上传页时避免再次上传瞬间出现上一张图片残留。
+   * 保留 sceneManager 等底层资源以便下次快速复用。
+   */
+  reset(): void {
+    this.container.classList.remove('active');
+    this.overlayImage.src = '';
+    this.overlayImage.style.display = 'none';
+    this.sourceImage = null;
+    this.autoFitReferenceSize = null;
+    this.autoModelOffsetCompensation.set(0, 0, 0);
+    this.splatLoader?.unload();
+    this.sceneManager?.setCanvasClipRect(null);
+  }
+
   getContainer(): HTMLElement {
     return this.container;
   }
