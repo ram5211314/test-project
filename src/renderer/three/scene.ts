@@ -5,6 +5,7 @@
 
 import * as THREE from 'three';
 import { SparkRenderer } from '@sparkjsdev/spark';
+import { EdgeFillPass } from './edge-fill-pass';
 import {
   DEFAULT_CAMERA_POSITION,
   DEFAULT_CAMERA_LOOK_AT,
@@ -17,9 +18,11 @@ import {
 export class SceneManager {
   private renderer: THREE.WebGLRenderer;
   private sparkRenderer: SparkRenderer;
+  private edgeFillPass: EdgeFillPass;
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
   private frameCallbacks = new Set<() => void>();
+  private drawingBufferSize = new THREE.Vector2();
 
   constructor(container: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -42,6 +45,8 @@ export class SceneManager {
       falloff: 1,
       focalAdjustment: 1,
     });
+    this.edgeFillPass = new EdgeFillPass(this.renderer, DEFAULT_VIEWER_BACKGROUND);
+    this.syncPostProcessSize();
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(DEFAULT_VIEWER_BACKGROUND);
@@ -65,7 +70,7 @@ export class SceneManager {
     const animate = (): void => {
       requestAnimationFrame(animate);
       this.frameCallbacks.forEach((callback) => callback());
-      this.sparkRenderer.render(this.scene, this.camera);
+      this.edgeFillPass.render(this.scene, this.camera, this.sparkRenderer);
     };
     animate();
   }
@@ -113,11 +118,13 @@ export class SceneManager {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+    this.syncPostProcessSize();
   }
 
   setBackground(color: string): void {
     this.scene.background = new THREE.Color(color);
     this.renderer.setClearColor(color, 1);
+    this.edgeFillPass.setBackground(color);
   }
 
   setFov(fov: number): void {
@@ -128,8 +135,14 @@ export class SceneManager {
   dispose(): void {
     this.frameCallbacks.clear();
     this.scene.remove(this.sparkRenderer);
+    this.edgeFillPass.dispose();
     this.sparkRenderer.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
+  }
+
+  private syncPostProcessSize(): void {
+    this.renderer.getDrawingBufferSize(this.drawingBufferSize);
+    this.edgeFillPass.setSize(this.drawingBufferSize.x, this.drawingBufferSize.y);
   }
 }
