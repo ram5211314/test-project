@@ -3,13 +3,13 @@
 // ============================================================
 
 import type {
+  ReconstructionModel,
   ReconstructionProvider,
   ReconstructionResolution,
 } from '../../shared/types';
 
 const KIE_API_BASE_URL = 'https://api.kie.ai';
 const KIE_FILE_BASE_URL = 'https://kieai.redpandaai.co';
-const KIE_MODEL = 'nano-banana-2';
 const KIE_MAX_POLL_MS = 15 * 60 * 1000;
 
 export const RECONSTRUCTION_PROMPT =
@@ -20,20 +20,39 @@ type KieAspectRatio =
   | '1:1'
   | '1:4'
   | '16:9'
+  | '1:2'
   | '1:8'
   | '21:9'
+  | '2:1'
   | '2:3'
+  | '3:1'
   | '3:2'
   | '3:4'
+  | '1:3'
   | '4:1'
   | '4:3'
   | '4:5'
   | '5:4'
   | '8:1'
-  | '9:16';
+  | '9:16'
+  | '9:21';
+
+type KieModelConfig = {
+  id: ReconstructionModel;
+  label: string;
+  apiModel: string;
+  supportedAspectRatios: KieAspectRatio[];
+  buildInput: (input: {
+    prompt: string;
+    imageUrl: string;
+    aspectRatio: KieAspectRatio;
+    resolution: ReconstructionResolution;
+  }) => Record<string, unknown>;
+};
 
 type ReconstructionRequest = {
   provider: ReconstructionProvider;
+  model: ReconstructionModel;
   apiKey: string;
   gaussianBlob: Blob;
   referenceBlob: Blob;
@@ -82,18 +101,64 @@ const KIE_ASPECT_RATIOS: Array<{ value: Exclude<KieAspectRatio, 'auto'>; ratio: 
   { value: '1:1', ratio: 1 },
   { value: '1:4', ratio: 1 / 4 },
   { value: '16:9', ratio: 16 / 9 },
+  { value: '1:2', ratio: 1 / 2 },
   { value: '1:8', ratio: 1 / 8 },
   { value: '21:9', ratio: 21 / 9 },
+  { value: '2:1', ratio: 2 },
   { value: '2:3', ratio: 2 / 3 },
+  { value: '3:1', ratio: 3 },
   { value: '3:2', ratio: 3 / 2 },
   { value: '3:4', ratio: 3 / 4 },
+  { value: '1:3', ratio: 1 / 3 },
   { value: '4:1', ratio: 4 },
   { value: '4:3', ratio: 4 / 3 },
   { value: '4:5', ratio: 4 / 5 },
   { value: '5:4', ratio: 5 / 4 },
   { value: '8:1', ratio: 8 },
   { value: '9:16', ratio: 9 / 16 },
+  { value: '9:21', ratio: 9 / 21 },
 ];
+
+const KIE_MODEL_CONFIGS: Record<ReconstructionModel, KieModelConfig> = {
+  'gpt-image-2': {
+    id: 'gpt-image-2',
+    label: 'GPT Image 2',
+    apiModel: 'gpt-image-2-image-to-image',
+    supportedAspectRatios: ['auto', '1:1', '3:2', '2:3', '4:3', '3:4', '5:4', '4:5', '16:9', '9:16', '2:1', '1:2', '3:1', '1:3', '21:9', '9:21'],
+    buildInput: ({ prompt, imageUrl, aspectRatio, resolution }) => ({
+      prompt,
+      input_urls: [imageUrl],
+      aspect_ratio: aspectRatio,
+      resolution,
+    }),
+  },
+  'seedream-5-lite': {
+    id: 'seedream-5-lite',
+    label: 'Seedream 5.0 Lite',
+    apiModel: 'seedream/5-lite-image-to-image',
+    supportedAspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16', '2:3', '3:2', '21:9'],
+    buildInput: ({ prompt, imageUrl, aspectRatio, resolution }) => ({
+      prompt,
+      image_urls: [imageUrl],
+      aspect_ratio: aspectRatio === 'auto' ? '1:1' : aspectRatio,
+      quality: resolution === '4K' ? 'high' : 'basic',
+    }),
+  },
+  'nano-banana-2': {
+    id: 'nano-banana-2',
+    label: 'Nano Banana 2',
+    apiModel: 'nano-banana-2',
+    supportedAspectRatios: ['auto', '1:1', '1:4', '16:9', '1:8', '21:9', '2:3', '3:2', '3:4', '4:1', '4:3', '4:5', '5:4', '8:1', '9:16'],
+    buildInput: ({ prompt, imageUrl, aspectRatio, resolution }) => ({
+      prompt,
+      aspect_ratio: aspectRatio,
+      resolution,
+      output_format: 'jpg',
+      google_search: false,
+      image_input: [imageUrl],
+    }),
+  },
+};
 
 const kieAdapter: ProviderAdapter = {
   id: 'kie',
@@ -118,15 +183,17 @@ async function reconstructWithKie(request: ReconstructionRequest): Promise<Blob>
     throw new Error('请先在设置里填写 KIE API Key');
   }
 
+  const modelConfig = KIE_MODEL_CONFIGS[request.model] ?? KIE_MODEL_CONFIGS['gpt-image-2'];
   const gaussianInput = await normalizeUploadImage(request.gaussianBlob, 'sharp-viewer-gaussian.png');
 
   const [gaussianUrl, aspectRatio] = await Promise.all([
     uploadKieFile(gaussianInput.blob, gaussianInput.fileName, apiKey),
-    pickClosestAspectRatio(gaussianInput.blob),
+    pickClosestAspectRatio(gaussianInput.blob, modelConfig.supportedAspectRatios),
   ]);
 
   const taskId = await createKieTask({
     apiKey,
+    modelConfig,
     gaussianUrl,
     aspectRatio,
     resolution: request.resolution,
@@ -194,6 +261,7 @@ async function uploadKieFile(blob: Blob, fileName: string, apiKey: string): Prom
 
 async function createKieTask(input: {
   apiKey: string;
+  modelConfig: KieModelConfig;
   gaussianUrl: string;
   aspectRatio: KieAspectRatio;
   resolution: ReconstructionResolution;
@@ -205,15 +273,13 @@ async function createKieTask(input: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: KIE_MODEL,
-      input: {
+      model: input.modelConfig.apiModel,
+      input: input.modelConfig.buildInput({
         prompt: RECONSTRUCTION_PROMPT,
-        aspect_ratio: input.aspectRatio,
+        imageUrl: input.gaussianUrl,
+        aspectRatio: input.aspectRatio,
         resolution: input.resolution,
-        output_format: 'jpg',
-        google_search: false,
-        image_input: [input.gaussianUrl],
-      },
+      }),
     }),
   });
   const data = await readJson<KieCreateTaskResponse>(response);
@@ -271,14 +337,17 @@ function parseKieResultUrl(resultJson: string | undefined): string | null {
   }
 }
 
-async function pickClosestAspectRatio(blob: Blob): Promise<KieAspectRatio> {
+async function pickClosestAspectRatio(blob: Blob, supportedAspectRatios: KieAspectRatio[]): Promise<KieAspectRatio> {
   const size = await getImageSize(blob);
-  if (!size) return 'auto';
+  if (!size) return supportedAspectRatios.includes('auto') ? 'auto' : '1:1';
+  const candidates = KIE_ASPECT_RATIOS.filter((candidate) => supportedAspectRatios.includes(candidate.value));
+  if (candidates.length === 0) return supportedAspectRatios.includes('auto') ? 'auto' : '1:1';
+
   const ratio = size.width / size.height;
-  let best = KIE_ASPECT_RATIOS[0];
+  let best = candidates[0];
   let bestScore = Infinity;
 
-  for (const candidate of KIE_ASPECT_RATIOS) {
+  for (const candidate of candidates) {
     const score = Math.abs(Math.log(ratio / candidate.ratio));
     if (score < bestScore) {
       best = candidate;

@@ -197,6 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const originalBlob = await resolveReferenceBlob();
       const processedBlob = await runImageReconstruction({
         provider: settings.reconstructionProvider,
+        model: settings.reconstructionModel,
         apiKey: settings.kieApiKey,
         gaussianBlob: capturedBlob,
         referenceBlob: originalBlob,

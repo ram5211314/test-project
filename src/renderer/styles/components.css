@@ -415,6 +415,21 @@
   text-shadow: 0 1px 14px rgba(0, 0, 0, 0.34);
 }
 
+#app[data-phase='idle'] .settings-drawer,
+#app[data-phase='idle'] .settings-drawer .liquid-button,
+#app.app-has-content .settings-drawer,
+#app.app-has-content .settings-drawer .liquid-button {
+  color: #ffffff;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.34);
+}
+
+#app[data-phase='idle'] #settings-panel .settings-drawer.liquid-surface,
+#app[data-phase='idle'] #settings-panel .settings-drawer.liquid-surface *,
+#app.app-has-content #settings-panel .settings-drawer.liquid-surface,
+#app.app-has-content #settings-panel .settings-drawer.liquid-surface * {
+  color: #ffffff;
+}
+
 #settings-panel.is-open {
   pointer-events: auto;
 }
@@ -450,6 +465,7 @@
   font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.01em;
+  color: #ffffff;
 }
 
 .settings-subtitle,
@@ -460,15 +476,53 @@
   font-weight: 500;
 }
 
+.settings-provider-link {
+  display: inline-flex;
+  margin-top: 2px;
+  color: #ffffff;
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+
+.settings-provider-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
 .settings-close {
   width: 30px;
   height: 30px;
   min-height: 30px;
+  color: #ffffff;
 }
 
 .settings-form {
   overflow: auto;
   padding: 16px 18px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.54) rgba(255, 255, 255, 0.12);
+}
+
+.settings-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.settings-form::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.settings-form::-webkit-scrollbar-thumb {
+  min-height: 52px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.54);
+  background-clip: padding-box;
+}
+
+.settings-form::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.72);
+  background-clip: padding-box;
 }
 
 .settings-section {
@@ -678,6 +732,13 @@
 .settings-close {
   color: #ffffff;
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.32);
+}
+
+.settings-close .lucide,
+.settings-drawer .custom-select-button .lucide,
+.settings-drawer .custom-select-option .lucide {
+  color: #ffffff;
+  stroke: currentColor;
 }
 
 /* ---- Busy FX: use current image/canvas as the visual background ---- */
