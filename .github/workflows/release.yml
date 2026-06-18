@@ -23,14 +23,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
       - name: Create release if needed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             echo "Release $RELEASE_TAG already exists"
           else
             gh release create "$RELEASE_TAG" \
+              --repo "$GH_REPO" \
               --target "$GITHUB_SHA" \
               --title "$RELEASE_TAG" \
               --generate-notes
